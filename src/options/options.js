@@ -127,17 +127,31 @@ async function toggleWatched(animeId, epNum) {
 function renderManageView(animes, now) {
   const main = document.getElementById('main');
 
-  if (animes.length === 0) {
-    main.innerHTML = `
-      <div class="empty">
+  const toolbarHtml = `
+    <div class="data-toolbar">
+      <button class="btn-icon" id="btn-export">エクスポート</button>
+      <label class="btn-icon" id="btn-import-label">
+        インポート
+        <input type="file" id="import-input" accept=".json" style="display:none">
+      </label>
+    </div>
+  `;
+
+  const bodyHtml = animes.length === 0
+    ? `<div class="empty">
         <p>追体験中のアニメはありません</p>
         <a class="link-dmm" href="https://tv.dmm.com/" target="_blank">DMM TV を開く</a>
-      </div>
-    `;
-    return;
-  }
+       </div>`
+    : animes.map(a => renderCard(a, now)).join('');
 
-  main.innerHTML = animes.map(a => renderCard(a, now)).join('');
+  main.innerHTML = toolbarHtml + bodyHtml;
+
+  document.getElementById('btn-export').addEventListener('click', exportData);
+  document.getElementById('import-input').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (file) await importData(file);
+    e.target.value = '';
+  });
 
   main.querySelectorAll('[data-action="edit"]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -156,6 +170,44 @@ function renderManageView(animes, now) {
       }
     });
   });
+}
+
+// ---- エクスポート / インポート ----
+async function exportData() {
+  const animes = await SeasonaStorage.getAll();
+  const payload = { version: 1, exportedAt: new Date().toISOString(), animes };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `seasona-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function importData(file) {
+  let payload;
+  try {
+    payload = JSON.parse(await file.text());
+  } catch {
+    alert('JSONの解析に失敗しました。ファイルを確認してください。');
+    return;
+  }
+
+  const animes = Array.isArray(payload) ? payload : payload?.animes;
+  if (!Array.isArray(animes)) {
+    alert('不正なフォーマットです。seasona のエクスポートファイルを使用してください。');
+    return;
+  }
+
+  const invalid = animes.filter(a => !a.id || !a.title || !a.totalEpisodes || !a.startDate);
+  if (invalid.length > 0) {
+    alert(`必須フィールドが不足している作品があります: ${invalid.map(a => a.title ?? '(不明)').join(', ')}`);
+    return;
+  }
+
+  await Promise.all(animes.map(a => SeasonaStorage.save(a)));
+  await init();
 }
 
 function renderCard(anime, now) {
