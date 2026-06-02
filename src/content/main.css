@@ -36,7 +36,9 @@
 }
 
 .seasona-btn-icon {
-  font-size: 12px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 /* モーダル */
@@ -85,13 +87,14 @@
 .seasona-modal-close {
   background: none;
   border: none;
-  font-size: 18px;
   color: #999;
   cursor: pointer;
   padding: 4px 8px;
   border-radius: 6px;
-  line-height: 1;
-  transition: background 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
 }
 
 .seasona-modal-close:hover {
@@ -263,8 +266,8 @@
 }
 
 .seasona-block-icon {
-  font-size: 52px;
-  line-height: 1;
+  display: flex;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .seasona-block-anime {

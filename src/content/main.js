@@ -2,6 +2,14 @@
   console.log('[seasona] script loaded:', window.location.href);
   const adapter = seasonaAdapter;
 
+  const ICONS = {
+    check: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`,
+    play: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>`,
+    x: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`,
+    lock: `<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
+    circleOff: `<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg>`,
+  };
+
   // ---- SPA URL 変化の監視 ----
   let lastUrl = '';
 
@@ -70,8 +78,8 @@
     btn.id = 'seasona-track-btn';
     btn.className = alreadyTracked ? 'seasona-btn seasona-btn--active' : 'seasona-btn';
     btn.innerHTML = alreadyTracked
-      ? '<span class="seasona-btn-icon">✓</span>リアタイ追体験中'
-      : '<span class="seasona-btn-icon">▶</span>リアタイ追体験する';
+      ? `<span class="seasona-btn-icon">${ICONS.check}</span>リアタイ追体験中`
+      : `<span class="seasona-btn-icon">${ICONS.play}</span>リアタイ追体験する`;
 
     if (!alreadyTracked) {
       btn.addEventListener('click', () => showSetupModal(workId));
@@ -166,14 +174,14 @@
     const seasonId = adapter.extractWorkId(window.location.href);
 
     if (opts.type === 'unregistered') {
-      icon = '📋';
+      icon = ICONS.circleOff;
       title = '';
       msg = 'このアニメはリアタイ追体験に登録されていません';
       sub = '視聴するには作品ページから登録してください';
       next = '';
       backHref = `/vod/detail/?season=${seasonId}`;
     } else if (opts.type === 'unknown') {
-      icon = '🔒';
+      icon = ICONS.lock;
       title = escapeHtml(opts.anime.title);
       msg = 'このエピソードは再生できません';
       sub = '話数情報を取得できませんでした。作品ページで一覧を確認してください';
@@ -185,7 +193,7 @@
       const nextStr = nextDate
         ? `${nextDate.getFullYear()}/${nextDate.getMonth() + 1}/${nextDate.getDate()} ${String(nextDate.getHours()).padStart(2, '0')}:${String(nextDate.getMinutes()).padStart(2, '0')} 解禁予定`
         : '';
-      icon = '🔒';
+      icon = ICONS.lock;
       title = escapeHtml(anime.title);
       msg = `第${episodeNum}話はまだ解禁されていません`;
       sub = `現在 ${unlocked} 話まで解禁済み`;
@@ -236,7 +244,7 @@
       <div class="seasona-modal">
         <div class="seasona-modal-header">
           <h2 class="seasona-modal-title">リアタイ追体験の設定</h2>
-          <button class="seasona-modal-close" aria-label="閉じる">✕</button>
+          <button class="seasona-modal-close" aria-label="閉じる">${ICONS.x}</button>
         </div>
         <div class="seasona-modal-body">
           <div class="seasona-field">
@@ -377,7 +385,7 @@
     const btn = document.getElementById('seasona-track-btn');
     if (btn) {
       btn.className = 'seasona-btn seasona-btn--active';
-      btn.innerHTML = '<span class="seasona-btn-icon">✓</span>リアタイ追体験中';
+      btn.innerHTML = `<span class="seasona-btn-icon">${ICONS.check}</span>リアタイ追体験中`;
       btn.onclick = null;
     }
   }
@@ -437,7 +445,7 @@
     const btn = document.getElementById('seasona-track-btn');
     if (btn) {
       btn.className = 'seasona-btn seasona-btn--active';
-      btn.innerHTML = '<span class="seasona-btn-icon">✓</span>リアタイ追体験中';
+      btn.innerHTML = `<span class="seasona-btn-icon">${ICONS.check}</span>リアタイ追体験中`;
       btn.onclick = null;
     }
   }

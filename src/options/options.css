@@ -149,22 +149,64 @@ body {
   letter-spacing: 0.03em;
 }
 
+.card-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.card-progress-inline {
+  font-size: 12px;
+  font-weight: 700;
+  color: #e60026;
+  white-space: nowrap;
+}
+
+.card-collapse-btn {
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  border-radius: 6px;
+  color: #bbb;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.card-collapse-btn:hover {
+  background: #f0f0f0;
+  color: #555;
+}
+
 .card-delete {
   flex-shrink: 0;
   background: none;
   border: none;
-  font-size: 14px;
   color: #bbb;
   cursor: pointer;
   padding: 4px 6px;
   border-radius: 6px;
-  line-height: 1;
+  display: flex;
+  align-items: center;
   transition: background 0.15s, color 0.15s;
 }
 
 .card-delete:hover {
   background: #fff0f0;
   color: #e60026;
+}
+
+/* カード折りたたみ */
+.card-collapsible {
+  overflow: hidden;
+  max-height: 2000px;
+  transition: max-height 0.3s ease;
+}
+
+.anime-card--collapsed .card-collapsible {
+  max-height: 0;
 }
 
 .card-body {
@@ -361,8 +403,9 @@ body {
   border-color: #bbb;
 }
 
-/* 編集モーダル */
-#edit-modal {
+/* モーダル共通レイアウト */
+#edit-modal,
+#confirm-modal {
   position: fixed;
   inset: 0;
   z-index: 9999;
@@ -406,13 +449,14 @@ body {
 .modal-close {
   background: none;
   border: none;
-  font-size: 18px;
   color: #999;
   cursor: pointer;
   padding: 4px 8px;
   border-radius: 6px;
-  line-height: 1;
-  transition: background 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
 }
 
 .modal-close:hover {
@@ -541,6 +585,35 @@ body {
 
 .btn-primary:hover {
   background: #c4001f;
+}
+
+.btn-danger {
+  background: #e60026;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #fff;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+
+.btn-danger:hover {
+  background: #c4001f;
+}
+
+/* 削除確認モーダル */
+.modal.modal--sm {
+  width: 360px;
+}
+
+.confirm-msg {
+  font-size: 14px;
+  color: #444;
+  line-height: 1.6;
+  margin: 0;
 }
 
 /* フィルター（未視聴 / 全て） */

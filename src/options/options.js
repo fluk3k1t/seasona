@@ -1,5 +1,13 @@
 let currentView = 'episodes'; // 'episodes' | 'manage'
 let episodeFilter = 'unwatched'; // 'unwatched' | 'all'
+const expandedIds = new Set();
+
+const ICONS = {
+  x: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`,
+  trash: `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>`,
+  chevronDown: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`,
+  chevronUp: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>`,
+};
 
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -142,7 +150,7 @@ function renderManageView(animes, now) {
         <p>追体験中のアニメはありません</p>
         <a class="link-dmm" href="https://tv.dmm.com/" target="_blank">DMM TV を開く</a>
        </div>`
-    : animes.map(a => renderCard(a, now)).join('');
+    : animes.map(a => renderCard(a, now, !expandedIds.has(a.id))).join('');
 
   main.innerHTML = toolbarHtml + bodyHtml;
 
@@ -153,6 +161,24 @@ function renderManageView(animes, now) {
     e.target.value = '';
   });
 
+  main.querySelectorAll('[data-action="toggle-collapse"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id;
+      const card = btn.closest('.anime-card');
+      if (expandedIds.has(id)) {
+        expandedIds.delete(id);
+        card.classList.add('anime-card--collapsed');
+        btn.innerHTML = ICONS.chevronDown;
+        btn.setAttribute('aria-label', '展開する');
+      } else {
+        expandedIds.add(id);
+        card.classList.remove('anime-card--collapsed');
+        btn.innerHTML = ICONS.chevronUp;
+        btn.setAttribute('aria-label', '折りたたむ');
+      }
+    });
+  });
+
   main.querySelectorAll('[data-action="edit"]').forEach(btn => {
     btn.addEventListener('click', () => {
       const anime = animes.find(a => a.id === btn.dataset.id);
@@ -161,15 +187,45 @@ function renderManageView(animes, now) {
   });
 
   main.querySelectorAll('[data-action="delete"]').forEach(btn => {
-    btn.addEventListener('click', async () => {
+    btn.addEventListener('click', () => {
       const anime = animes.find(a => a.id === btn.dataset.id);
       if (!anime) return;
-      if (confirm(`「${anime.title}」の追体験を削除しますか？`)) {
+      openConfirmModal(anime.title, async () => {
         await SeasonaStorage.remove(anime.id);
+        expandedIds.delete(anime.id);
         await init();
-      }
+      });
     });
   });
+}
+
+// ---- 削除確認モーダル ----
+function openConfirmModal(animeTitle, onConfirm) {
+  if (document.getElementById('confirm-modal')) return;
+
+  const modal = document.createElement('div');
+  modal.id = 'confirm-modal';
+  modal.innerHTML = `
+    <div class="modal-overlay"></div>
+    <div class="modal modal--sm">
+      <div class="modal-header">
+        <h2 class="modal-title">削除の確認</h2>
+      </div>
+      <div class="modal-body">
+        <p class="confirm-msg">「${escapeHtml(animeTitle)}」の追体験を削除しますか？</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="confirm-cancel">キャンセル</button>
+        <button class="btn-danger" id="confirm-ok">削除する</button>
+      </div>
+    </div>
+  `;
+
+  const close = () => modal.remove();
+  modal.querySelector('.modal-overlay').addEventListener('click', close);
+  modal.querySelector('#confirm-cancel').addEventListener('click', close);
+  modal.querySelector('#confirm-ok').addEventListener('click', () => { close(); onConfirm(); });
+  document.body.appendChild(modal);
 }
 
 // ---- エクスポート / インポート ----
@@ -210,7 +266,7 @@ async function importData(file) {
   await init();
 }
 
-function renderCard(anime, now) {
+function renderCard(anime, now, isCollapsed = false) {
   const unlocked = SeasonaSchedule.getUnlockedCount(anime, now);
   const pct = Math.round((unlocked / anime.totalEpisodes) * 100);
   const nextUnlock = SeasonaSchedule.getNextUnlockDate(anime, now);
@@ -233,36 +289,46 @@ function renderCard(anime, now) {
     : `<div class="card-episodes-empty">まだ視聴可能なエピソードはありません</div>`;
 
   return `
-    <div class="anime-card">
+    <div class="anime-card${isCollapsed ? ' anime-card--collapsed' : ''}">
       <div class="card-header">
         <div class="card-title-row">
           <a class="card-title" href="${workUrl}" target="_blank">${escapeHtml(anime.title)}</a>
           <span class="card-site">${siteLabel}</span>
         </div>
-        <button class="card-delete" data-action="delete" data-id="${escapeAttr(anime.id)}" aria-label="削除">✕</button>
-      </div>
-      <div class="card-body">
-        <div class="card-progress-row">
-          <div class="card-progress-bar">
-            <div class="card-progress-fill" style="width:${pct}%"></div>
-          </div>
-          <span class="card-progress-text">${unlocked} / ${anime.totalEpisodes} 話解禁済み</span>
+        <div class="card-header-actions">
+          <span class="card-progress-inline">${unlocked} / ${anime.totalEpisodes} 話</span>
+          <button class="card-collapse-btn" data-action="toggle-collapse" data-id="${escapeAttr(anime.id)}" aria-label="${isCollapsed ? '展開する' : '折りたたむ'}">
+            ${isCollapsed ? ICONS.chevronDown : ICONS.chevronUp}
+          </button>
+          <button class="card-delete" data-action="delete" data-id="${escapeAttr(anime.id)}" aria-label="削除">
+            ${ICONS.trash}
+          </button>
         </div>
-        <div class="card-meta">
-          <div class="card-meta-item">
-            <span class="card-meta-label">配信スケジュール</span>
-            <span class="card-meta-value">${formatScheduleLabel(anime)}</span>
-          </div>
-          <div class="card-meta-item">
-            <span class="card-meta-label">第1話配信日時</span>
-            <span class="card-meta-value">${formatDate(startDt)}</span>
-          </div>
-        </div>
-        ${nextHtml}
-        ${episodesHtml}
       </div>
-      <div class="card-footer">
-        <button class="btn-edit" data-action="edit" data-id="${escapeAttr(anime.id)}">設定を編集</button>
+      <div class="card-collapsible">
+        <div class="card-body">
+          <div class="card-progress-row">
+            <div class="card-progress-bar">
+              <div class="card-progress-fill" style="width:${pct}%"></div>
+            </div>
+            <span class="card-progress-text">${unlocked} / ${anime.totalEpisodes} 話解禁済み</span>
+          </div>
+          <div class="card-meta">
+            <div class="card-meta-item">
+              <span class="card-meta-label">配信スケジュール</span>
+              <span class="card-meta-value">${formatScheduleLabel(anime)}</span>
+            </div>
+            <div class="card-meta-item">
+              <span class="card-meta-label">第1話配信日時</span>
+              <span class="card-meta-value">${formatDate(startDt)}</span>
+            </div>
+          </div>
+          ${nextHtml}
+          ${episodesHtml}
+        </div>
+        <div class="card-footer">
+          <button class="btn-edit" data-action="edit" data-id="${escapeAttr(anime.id)}">設定を編集</button>
+        </div>
       </div>
     </div>
   `;
@@ -328,7 +394,7 @@ function openEditModal(anime) {
     <div class="modal">
       <div class="modal-header">
         <h2 class="modal-title">設定を編集</h2>
-        <button class="modal-close" aria-label="閉じる">✕</button>
+        <button class="modal-close" aria-label="閉じる">${ICONS.x}</button>
       </div>
       <div class="modal-body">
         <div class="field">
