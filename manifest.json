@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "seasona",
+  "version": "0.1.0",
+  "description": "過去のアニメをリアタイ追体験する",
+  "permissions": ["storage"],
+  "host_permissions": ["https://tv.dmm.com/*"],
+  "background": {
+    "service_worker": "src/background/service-worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://tv.dmm.com/*"],
+      "js": [
+        "src/lib/adapters/dmm-anime.js",
+        "src/lib/storage.js",
+        "src/lib/schedule.js",
+        "src/content/main.js"
+      ],
+      "css": ["src/content/main.css"]
+    }
+  ],
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

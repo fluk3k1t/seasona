@@ -1,0 +1,259 @@
+/* seasona ボタン */
+#seasona-track-btn {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #e60026;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 13px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  transition: background 0.15s, transform 0.1s;
+  letter-spacing: 0.02em;
+}
+
+#seasona-track-btn:hover {
+  background: #c4001f;
+  transform: translateY(-1px);
+}
+
+#seasona-track-btn:active {
+  transform: translateY(0);
+}
+
+#seasona-track-btn.seasona-btn--active {
+  background: #27ae60;
+  cursor: default;
+}
+
+.seasona-btn-icon {
+  font-size: 12px;
+}
+
+/* モーダル */
+#seasona-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483646;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#seasona-modal .seasona-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+}
+
+#seasona-modal .seasona-modal {
+  position: relative;
+  background: #fff;
+  border-radius: 14px;
+  width: 440px;
+  max-width: calc(100vw - 48px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+}
+
+.seasona-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.seasona-modal-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #111;
+}
+
+.seasona-modal-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #999;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  line-height: 1;
+  transition: background 0.15s;
+}
+
+.seasona-modal-close:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.seasona-modal-body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.seasona-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.seasona-field-row {
+  display: flex;
+  gap: 12px;
+}
+
+.seasona-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #555;
+  letter-spacing: 0.03em;
+}
+
+.seasona-input,
+.seasona-select {
+  padding: 9px 12px;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #111;
+  background: #fafafa;
+  transition: border-color 0.15s;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.seasona-input:focus,
+.seasona-select:focus {
+  outline: none;
+  border-color: #e60026;
+  background: #fff;
+}
+
+.seasona-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px 20px;
+  border-top: 1px solid #eee;
+}
+
+.seasona-btn-secondary {
+  background: none;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  padding: 9px 18px;
+  font-size: 14px;
+  cursor: pointer;
+  color: #555;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+
+.seasona-btn-secondary:hover {
+  background: #f5f5f5;
+}
+
+.seasona-btn-primary {
+  background: #e60026;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #fff;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+
+.seasona-btn-primary:hover {
+  background: #c4001f;
+}
+
+/* ブロックオーバーレイ */
+#seasona-block-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  background: rgba(0, 0, 0, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+}
+
+.seasona-block-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+  padding: 40px 32px;
+  max-width: 440px;
+}
+
+.seasona-block-icon {
+  font-size: 52px;
+  line-height: 1;
+}
+
+.seasona-block-anime {
+  font-size: 13px;
+  color: #888;
+  font-weight: 500;
+}
+
+.seasona-block-msg {
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.4;
+}
+
+.seasona-block-sub {
+  font-size: 14px;
+  color: #aaa;
+}
+
+.seasona-block-next {
+  font-size: 15px;
+  color: #e60026;
+  font-weight: 700;
+  background: rgba(230, 0, 38, 0.12);
+  padding: 8px 20px;
+  border-radius: 8px;
+}
+
+.seasona-block-back {
+  display: inline-block;
+  margin-top: 8px;
+  background: #333;
+  color: #fff;
+  text-decoration: none;
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.15s;
+}
+
+.seasona-block-back:hover {
+  background: #444;
+}
