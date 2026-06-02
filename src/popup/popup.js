@@ -1,9 +1,14 @@
 function getUnlockedCount(anime, now = new Date()) {
   const start = new Date(anime.startDate);
   if (now < start) return 0;
-  const msPerWeek = 7 * 24 * 60 * 60 * 1000;
-  return Math.min(Math.floor((now - start) / msPerWeek) + 1, anime.totalEpisodes);
+  const intervalMs = anime.schedule?.intervalMs ?? (7 * 24 * 60 * 60 * 1000);
+  return Math.min(Math.floor((now - start) / intervalMs) + 1, anime.totalEpisodes);
 }
+
+document.getElementById('btn-manage').addEventListener('click', () => {
+  chrome.runtime.openOptionsPage();
+  window.close();
+});
 
 document.addEventListener('DOMContentLoaded', async () => {
   const main = document.getElementById('main');

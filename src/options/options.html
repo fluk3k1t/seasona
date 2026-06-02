@@ -4,18 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>seasona</title>
-  <link rel="stylesheet" href="popup.css">
+  <link rel="stylesheet" href="options.css">
 </head>
 <body>
   <header class="header">
     <span class="header-logo">seasona</span>
   </header>
+  <nav class="nav">
+    <button class="nav-btn nav-btn--active" data-view="episodes">視聴可能</button>
+    <button class="nav-btn" data-view="manage">作品</button>
+  </nav>
   <main id="main">
     <div class="loading">読み込み中...</div>
   </main>
-  <footer class="footer">
-    <button id="btn-manage">ダッシュボードを開く</button>
-  </footer>
-  <script src="popup.js"></script>
+  <script src="../lib/schedule.js"></script>
+  <script src="../lib/storage.js"></script>
+  <script src="options.js"></script>
 </body>
 </html>

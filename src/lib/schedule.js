@@ -4,9 +4,9 @@ const SeasonaSchedule = {
   getUnlockedCount(anime, now = new Date()) {
     const start = new Date(anime.startDate);
     if (now < start) return 0;
-    const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+    const intervalMs = anime.schedule?.intervalMs ?? (7 * 24 * 60 * 60 * 1000);
     const elapsed = now - start;
-    const count = Math.floor(elapsed / msPerWeek) + 1;
+    const count = Math.floor(elapsed / intervalMs) + 1;
     return Math.min(count, anime.totalEpisodes);
   },
 
@@ -15,7 +15,7 @@ const SeasonaSchedule = {
     const unlocked = this.getUnlockedCount(anime, now);
     if (unlocked >= anime.totalEpisodes) return null;
     const start = new Date(anime.startDate);
-    const msPerWeek = 7 * 24 * 60 * 60 * 1000;
-    return new Date(start.getTime() + unlocked * msPerWeek);
+    const intervalMs = anime.schedule?.intervalMs ?? (7 * 24 * 60 * 60 * 1000);
+    return new Date(start.getTime() + unlocked * intervalMs);
   }
 };

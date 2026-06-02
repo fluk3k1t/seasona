@@ -52,7 +52,7 @@
 #seasona-modal .seasona-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(2px);
 }
 
@@ -170,6 +170,22 @@
   background: #f5f5f5;
 }
 
+.seasona-btn-unlock-all {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  color: #ccc;
+  cursor: pointer;
+  font-family: inherit;
+  margin-right: auto;
+  transition: color 0.15s;
+}
+
+.seasona-btn-unlock-all:hover {
+  color: #999;
+}
+
 .seasona-btn-primary {
   background: #e60026;
   border: none;
@@ -185,6 +201,43 @@
 
 .seasona-btn-primary:hover {
   background: #c4001f;
+}
+
+/* スケジュールタイプ切替（セグメントコントロール） */
+.seasona-seg {
+  display: flex;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.seasona-seg-btn {
+  flex: 1;
+  padding: 8px 0;
+  font-size: 12px;
+  font-weight: 600;
+  background: #fafafa;
+  border: none;
+  border-right: 1.5px solid #ddd;
+  cursor: pointer;
+  color: #555;
+  font-family: inherit;
+  letter-spacing: 0.02em;
+  text-align: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.seasona-seg-btn:last-child {
+  border-right: none;
+}
+
+.seasona-seg-btn--active {
+  background: #e60026;
+  color: #fff;
+}
+
+.seasona-seg-btn:not(.seasona-seg-btn--active):hover {
+  background: #f0f0f0;
 }
 
 /* ブロックオーバーレイ */

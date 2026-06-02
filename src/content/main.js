@@ -112,7 +112,16 @@
     if (episodeNum > unlocked) {
       const nextDate = SeasonaSchedule.getNextUnlockDate(anime);
       injectBlockOverlay({ type: 'locked', episodeNum, unlocked, nextDate, anime });
+    } else {
+      markAsWatched(anime, episodeNum);
     }
+  }
+
+  async function markAsWatched(anime, episodeNum) {
+    const watched = new Set(anime.watchedEpisodes ?? []);
+    if (watched.has(episodeNum)) return;
+    watched.add(episodeNum);
+    await SeasonaStorage.save({ ...anime, watchedEpisodes: [...watched] });
   }
 
   // DOM から第N話を読む。head の title 変化も監視 (React の非同期描画に対応)
@@ -241,29 +250,51 @@
               min="1" value="${totalEpisodes || ''}" placeholder="例: 12">
           </div>
           <div class="seasona-field">
-            <label class="seasona-label">第1話の解禁日</label>
+            <label class="seasona-label">配信スケジュール</label>
+            <div class="seasona-seg">
+              <button type="button" class="seasona-seg-btn seasona-seg-btn--active" data-type="weekly">毎週・曜日指定</button>
+              <button type="button" class="seasona-seg-btn" data-type="interval">開始日時・間隔指定</button>
+            </div>
+          </div>
+          <div class="seasona-field">
+            <label class="seasona-label">第1話の配信日</label>
             <input class="seasona-input" id="seasona-start-date" type="date">
           </div>
-          <div class="seasona-field-row">
-            <div class="seasona-field">
-              <label class="seasona-label">解禁曜日</label>
-              <select class="seasona-select" id="seasona-dow">
-                <option value="0">日曜日</option>
-                <option value="1">月曜日</option>
-                <option value="2">火曜日</option>
-                <option value="3">水曜日</option>
-                <option value="4">木曜日</option>
-                <option value="5">金曜日</option>
-                <option value="6">土曜日</option>
-              </select>
+          <div id="seasona-section-weekly">
+            <div class="seasona-field-row">
+              <div class="seasona-field">
+                <label class="seasona-label">解禁曜日</label>
+                <select class="seasona-select" id="seasona-dow">
+                  <option value="0">日曜日</option>
+                  <option value="1">月曜日</option>
+                  <option value="2">火曜日</option>
+                  <option value="3">水曜日</option>
+                  <option value="4">木曜日</option>
+                  <option value="5">金曜日</option>
+                  <option value="6">土曜日</option>
+                </select>
+              </div>
+              <div class="seasona-field">
+                <label class="seasona-label">解禁時刻</label>
+                <input class="seasona-input" id="seasona-time" type="time" value="00:00">
+              </div>
             </div>
-            <div class="seasona-field">
-              <label class="seasona-label">解禁時刻</label>
-              <input class="seasona-input" id="seasona-time" type="time" value="00:00">
+          </div>
+          <div id="seasona-section-interval" style="display:none">
+            <div class="seasona-field-row">
+              <div class="seasona-field">
+                <label class="seasona-label">配信時刻</label>
+                <input class="seasona-input" id="seasona-interval-time" type="time" value="00:00">
+              </div>
+              <div class="seasona-field">
+                <label class="seasona-label">配信間隔（日）</label>
+                <input class="seasona-input" id="seasona-interval-days" type="number" min="1" value="7">
+              </div>
             </div>
           </div>
         </div>
         <div class="seasona-modal-footer">
+          <button class="seasona-btn-unlock-all" id="seasona-unlock-all">全話を解禁する</button>
           <button class="seasona-btn-secondary" id="seasona-cancel">キャンセル</button>
           <button class="seasona-btn-primary" id="seasona-save">追体験を開始する</button>
         </div>
@@ -273,9 +304,20 @@
     overlay.querySelector('.seasona-overlay').addEventListener('click', closeModal);
     overlay.querySelector('.seasona-modal-close').addEventListener('click', closeModal);
     overlay.querySelector('#seasona-cancel').addEventListener('click', closeModal);
+    overlay.querySelector('#seasona-unlock-all').addEventListener('click', () => unlockAllEpisodes(workId));
     overlay.querySelector('#seasona-save').addEventListener('click', () => saveAnime(workId));
 
     document.body.appendChild(overlay);
+
+    overlay.querySelectorAll('.seasona-seg-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        overlay.querySelectorAll('.seasona-seg-btn').forEach(b => b.classList.remove('seasona-seg-btn--active'));
+        btn.classList.add('seasona-seg-btn--active');
+        const isInterval = btn.dataset.type === 'interval';
+        overlay.querySelector('#seasona-section-weekly').style.display = isInterval ? 'none' : '';
+        overlay.querySelector('#seasona-section-interval').style.display = isInterval ? '' : 'none';
+      });
+    });
   }
 
   // ---- 保存 ----
@@ -283,17 +325,36 @@
     const title = document.getElementById('seasona-title').value.trim();
     const total = parseInt(document.getElementById('seasona-total').value, 10);
     const startDate = document.getElementById('seasona-start-date').value;
-    const dow = parseInt(document.getElementById('seasona-dow').value, 10);
-    const [hour, minute] = document.getElementById('seasona-time').value.split(':').map(Number);
 
     if (!title || !total || !startDate) {
       alert('タイトル・全話数・開始日は必須です');
       return;
     }
 
-    const startDateTime = new Date(
-      `${startDate}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00`
-    );
+    const activeBtn = document.querySelector('.seasona-seg-btn--active');
+    const scheduleType = activeBtn ? activeBtn.dataset.type : 'weekly';
+
+    let startDateTime, schedule;
+
+    if (scheduleType === 'interval') {
+      const [hour, minute] = document.getElementById('seasona-interval-time').value.split(':').map(Number);
+      const intervalDays = parseInt(document.getElementById('seasona-interval-days').value, 10);
+      if (!intervalDays || intervalDays < 1) {
+        alert('配信間隔は1以上の整数を入力してください');
+        return;
+      }
+      startDateTime = new Date(
+        `${startDate}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00`
+      );
+      schedule = { type: 'interval', intervalDays, intervalMs: intervalDays * 24 * 60 * 60 * 1000 };
+    } else {
+      const dow = parseInt(document.getElementById('seasona-dow').value, 10);
+      const [hour, minute] = document.getElementById('seasona-time').value.split(':').map(Number);
+      startDateTime = new Date(
+        `${startDate}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00`
+      );
+      schedule = { type: 'weekly', dayOfWeek: dow, hour, minute };
+    }
 
     // エピソードマップも一緒に保存 (contentId → episodeNumber)
     const episodeMap = adapter.buildEpisodeMap(document);
@@ -305,7 +366,67 @@
       workId,
       workUrl: window.location.href,
       startDate: startDateTime.toISOString(),
-      schedule: { dayOfWeek: dow, hour, minute },
+      schedule,
+      totalEpisodes: total,
+      episodeMap,
+    };
+
+    await SeasonaStorage.save(anime);
+    closeModal();
+
+    const btn = document.getElementById('seasona-track-btn');
+    if (btn) {
+      btn.className = 'seasona-btn seasona-btn--active';
+      btn.innerHTML = '<span class="seasona-btn-icon">✓</span>リアタイ追体験中';
+      btn.onclick = null;
+    }
+  }
+
+  // ---- 全話解禁 ----
+  async function unlockAllEpisodes(workId) {
+    const title = document.getElementById('seasona-title').value.trim();
+    const total = parseInt(document.getElementById('seasona-total').value, 10);
+
+    if (!title || !total) {
+      alert('タイトルと全話数を入力してから実行してください');
+      return;
+    }
+
+    const confirmed = confirm(
+      `「${title}」の全${total}話を今すぐ解禁しますか？\n\n` +
+      `すべてのエピソードが視聴可能な状態で登録されます。\n` +
+      `この操作はリアタイ追体験の開始日を過去に設定することで行われます。`
+    );
+    if (!confirmed) return;
+
+    const activeBtn = document.querySelector('.seasona-seg-btn--active');
+    const scheduleType = activeBtn ? activeBtn.dataset.type : 'weekly';
+
+    let schedule, intervalMs;
+
+    if (scheduleType === 'interval') {
+      const intervalDays = parseInt(document.getElementById('seasona-interval-days').value, 10) || 7;
+      intervalMs = intervalDays * 24 * 60 * 60 * 1000;
+      schedule = { type: 'interval', intervalDays, intervalMs };
+    } else {
+      const dow = parseInt(document.getElementById('seasona-dow').value, 10);
+      const [hour, minute] = document.getElementById('seasona-time').value.split(':').map(Number);
+      intervalMs = 7 * 24 * 60 * 60 * 1000;
+      schedule = { type: 'weekly', dayOfWeek: dow, hour, minute };
+    }
+
+    const now = new Date();
+    const startDate = new Date(now.getTime() - total * intervalMs);
+    const episodeMap = adapter.buildEpisodeMap(document);
+
+    const anime = {
+      id: crypto.randomUUID(),
+      title,
+      siteId: adapter.id,
+      workId,
+      workUrl: window.location.href,
+      startDate: startDate.toISOString(),
+      schedule,
       totalEpisodes: total,
       episodeMap,
     };
